@@ -65,11 +65,53 @@ void change_models() {
 	}
 }
 
+void draw_navmeshes()
+{
+	if (auto _navmeshes = RE::PlayerCharacter::GetSingleton()->GetParentCell()->navMeshes) {
+		const auto& navmeshes = _navmeshes->navMeshes;
+		for (auto& _navmesh : navmeshes) {
+			auto navmesh = _navmesh.get();
+			auto& vertices = navmesh->vertices;
+
+			for (auto& vertex : vertices) {
+				draw_point<Colors::BLU>(vertex.location, 5, 0);
+			}
+
+			for (auto& triangle : navmesh->triangles) {
+				auto point0 = vertices[triangle.vertices[0]].location;
+				auto point1 = vertices[triangle.vertices[1]].location;
+				auto point2 = vertices[triangle.vertices[2]].location;
+				draw_line(point0, point1, 3, 0);
+				draw_line(point0, point2, 3, 0);
+				draw_line(point2, point1, 3, 0);
+			}
+		}
+	}
+}
+
+class DebugAPIHook
+{
+public:
+	static void Hook() { _Update = REL::Relocation<uintptr_t>(REL::ID(RE::VTABLE_PlayerCharacter[0])).write_vfunc(0xad, Update); }
+
+private:
+	static void Update(RE::PlayerCharacter* a, float delta)
+	{
+		_Update(a, delta);
+		draw_navmeshes();
+		DebugAPI_IMPL::DebugAPI::Update();
+	}
+
+	static inline REL::Relocation<decltype(Update)> _Update;
+};
+
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
 	switch (message->type) {
 	case SKSE::MessagingInterface::kDataLoaded:
 		change_models();
+
+		DebugAPIHook::Hook();
 
 		break;
 	}
