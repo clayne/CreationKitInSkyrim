@@ -1,6 +1,6 @@
 #pragma once
 
-//#define DEBUG
+#define DEBUG
 
 #include "RE/Skyrim.h"
 #include "SKSE/SKSE.h"
@@ -20,4 +20,4 @@ namespace logger = SKSE::log;
 #define DLLEXPORT __declspec(dllexport)
 
 #include "Version.h"
-#include "UselessFenixUtils.h"
+//#include "UselessFenixUtils.h"
